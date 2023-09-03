@@ -1,7 +1,26 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+import Image from 'next/image';
+import { useEffect } from 'react';
+import styles from './page.module.css';
 
 export default function Home() {
+  useEffect(() => {
+    function connectToWebSocket() {
+      const socket = new WebSocket('ws://localhost:8080');
+
+      if (socket) {
+        if (socket && socket.onopen) {
+          socket?.onopen((e: Event) => {
+            console.log('connection Established!');
+          });
+
+          socket.send('uhui data from client');
+        }
+      }
+    }
+
+    connectToWebSocket();
+  }, []);
+
   return (
     <main className={styles.main}>
       <div className={styles.description}>
@@ -91,5 +110,5 @@ export default function Home() {
         </a>
       </div>
     </main>
-  )
+  );
 }

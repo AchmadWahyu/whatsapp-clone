@@ -1,11 +1,16 @@
-const express = require('express');
-const app = express();
-const port = 3000;
+const { WebSocketServer } = require('ws');
+const port = 8080;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+const wss = new WebSocketServer({ port });
+
+wss.on('connection', (ws) => {
+  console.log("connected!")  
+    
+  ws.on('error', console.error);
+
+  ws.on('message', (data) => {
+    console.log('received: %s', data);
+  });
+
+  ws.send('send something');
 });
-
-app.listen(port, () => {
-    console.log(`App listening on port ${port}`)
-})
