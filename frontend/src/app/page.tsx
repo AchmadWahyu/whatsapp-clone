@@ -13,9 +13,11 @@ export default function Home() {
   const chatsRef = useRef<Chat[]>(chats);
 
   const setChats = (val: Chat) => {
+    // workaround because eventListener cant access the latest value of the state
+    // this is happen because eventListener is set on to run only on first render
+    // src: https://medium.com/geographit/accessing-react-state-in-event-listeners-with-usestate-and-useref-hooks-8cceee73c559
+    
     const newChats = [...chatsRef.current, val];
-
-    console.log('newChats: ', newChats);
 
     _setChats(newChats);
     chatsRef.current = newChats;
@@ -27,19 +29,11 @@ export default function Home() {
       const socket = new WebSocket('ws://localhost:8080');
 
       socket.addEventListener('open', () => {
-        console.log('A socket.readyState: ', socket.readyState);
         socket.send('client: 1');
       });
 
       socket.addEventListener('message', (event) => {
-        console.log('1 chatsRef?.current: ', chatsRef?.current);
-        console.log('1 JSON.parse(event.data): ', JSON.parse(event.data));
-
         setChats(JSON.parse(event.data));
-      });
-
-      document.getElementById('test-button')?.addEventListener('click', () => {
-        console.log(`clicked! chats: ${chats}`);
       });
 
       return socket;
@@ -47,8 +41,6 @@ export default function Home() {
 
     setChatSocket(connectToWebSocket());
   }, []);
-
-  console.log('2 chats: ', chats);
 
   return (
     <main className={styles.main}>
@@ -66,7 +58,7 @@ export default function Home() {
         />
         <button type="submit">Send</button>
       </form>
-      <div id="chat-container">
+      <div>
         {chats.map((chat) => (
           <div key={chat?.id}>{chat?.text}</div>
         ))}

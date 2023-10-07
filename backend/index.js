@@ -8,8 +8,6 @@ const port = 8080;
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws, req) => {
-  console.log('connected! req.headers', req.headers);
-
   ws.on('open', function open() {
     ws.send('server: 2');
   });
@@ -22,8 +20,6 @@ wss.on('connection', (ws, req) => {
       text: data.toString(),
     };
     
-    console.log("composedChat: ", composedChat)
-
     ws.send(JSON.stringify(composedChat));
   });
   
