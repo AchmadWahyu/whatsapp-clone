@@ -5,6 +5,8 @@ import styles from './page.module.css';
 type Chat = {
   id: string;
   text: string;
+  type: string;
+  timeStamp: number;
 };
 
 export default function Home() {
@@ -16,24 +18,41 @@ export default function Home() {
     // workaround because eventListener cant access the latest value of the state
     // this is happen because eventListener is set on to run only on first render
     // src: https://medium.com/geographit/accessing-react-state-in-event-listeners-with-usestate-and-useref-hooks-8cceee73c559
-    
+
     const newChats = [...chatsRef.current, val];
 
     _setChats(newChats);
     chatsRef.current = newChats;
   };
 
+  const [userId, _setUserId] = useState(null);
+  const userIdRef = useRef<string>('');
+
   const [chatSocket, setChatSocket] = useState<WebSocket | null>();
   useEffect(() => {
     function connectToWebSocket() {
       const socket = new WebSocket('ws://localhost:8080');
 
-      socket.addEventListener('open', () => {
-        socket.send('client: connected!');
-      });
-
       socket.addEventListener('message', (event) => {
-        setChats(JSON.parse(event.data));
+        const { type, id } = JSON.parse(event.data);
+
+        switch (type) {
+          case 'connection':
+            if (!userIdRef.current) {
+              _setUserId(id);
+              userIdRef.current = id;
+            }
+
+            setChats({
+              ...JSON.parse(event.data),
+              id: userId,
+            });
+
+            break;
+          case 'chat':
+            setChats(JSON.parse(event.data));
+            break;
+        }
       });
 
       return socket;
@@ -42,12 +61,37 @@ export default function Home() {
     setChatSocket(connectToWebSocket());
   }, []);
 
+  function composeChatTimeStamp(time: number) {
+    const date = new Date(time);
+
+    return `(${date.getHours()}:${date.getMinutes()})`;
+  }
+
+  function composeChat(chat: Chat) {
+    const { type, timeStamp } = chat;
+
+    switch (type) {
+      case 'connection':
+        return `${composeChatTimeStamp(timeStamp)} ${chat?.text}`;
+      case 'chat':
+        return `${chat?.id?.slice(0, 8)} ${composeChatTimeStamp(timeStamp)} : ${
+          chat?.text
+        }`;
+    }
+  }
+
   return (
     <main className={styles.main}>
       <form
         onSubmit={(e) => {
           e?.preventDefault();
-          chatSocket?.send(text);
+          chatSocket?.send(
+            JSON.stringify({
+              id: userId,
+              text,
+              type: 'chat',
+            })
+          );
         }}
       >
         <input
@@ -60,7 +104,7 @@ export default function Home() {
       </form>
       <div>
         {chats.map((chat) => (
-          <div key={chat?.id}>{chat?.text}</div>
+          <div key={chat?.id}>{composeChat(chat)}</div>
         ))}
       </div>
     </main>
