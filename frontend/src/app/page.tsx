@@ -29,7 +29,7 @@ export default function Home() {
       const socket = new WebSocket('ws://localhost:8080');
 
       socket.addEventListener('open', () => {
-        socket.send('client: 1');
+        socket.send('client: connected!');
       });
 
       socket.addEventListener('message', (event) => {

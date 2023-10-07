@@ -8,10 +8,6 @@ const port = 8080;
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws, req) => {
-  ws.on('open', function open() {
-    ws.send('server: 2');
-  });
-
   ws.on('error', console.error);
 
   ws.on('message', (data) => {
