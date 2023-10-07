@@ -1,16 +1,26 @@
 const { WebSocketServer } = require('ws');
+const http = require('http');
+const { randomUUID } = require('crypto');
+
+const server = http.createServer();
 const port = 8080;
 
-const wss = new WebSocketServer({ port });
+const wss = new WebSocketServer({ server });
 
-wss.on('connection', (ws) => {
-  console.log("connected!")  
-    
+wss.on('connection', (ws, req) => {
   ws.on('error', console.error);
 
   ws.on('message', (data) => {
-    console.log('received: %s', data);
+    const composedChat = {
+      id: randomUUID(),
+      text: data.toString(),
+    };
+    
+    ws.send(JSON.stringify(composedChat));
   });
+  
+});
 
-  ws.send('send something');
+server.listen(port, () => {
+  console.log('server listening!');
 });
