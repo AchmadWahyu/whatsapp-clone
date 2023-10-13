@@ -3,7 +3,7 @@ const http = require('http');
 const { randomUUID } = require('crypto');
 
 const server = http.createServer();
-const port = 8080;
+const port = process.env.PORT || 8080
 
 const wss = new WebSocketServer({ server });
 
